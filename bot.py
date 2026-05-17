@@ -7,7 +7,7 @@ ADMIN_ID = 6706601403
 SERVICE, ACCOUNT, GMAIL, SCREENSHOT = range(4)
 
 services = [
-    ["SEEDANCE 2.0"],
+    ["SEEDANCE 20"],
     
 ]
 
