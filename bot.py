@@ -1,11 +1,11 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
-    Updater,
+    ApplicationBuilder,
     CommandHandler,
     MessageHandler,
-    Filters,
-    CallbackContext,
+    ContextTypes,
     ConversationHandler,
+    filters,
 )
 
 BOT_TOKEN = "8812978702:AAEl9Hnug3vUiIIQTdxVDUcaDaEky04zzUM"
@@ -23,10 +23,10 @@ accounts = [
 ]
 
 
-def start(update: Update, context: CallbackContext):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply = ReplyKeyboardMarkup(services, resize_keyboard=True)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "🔥 সার্ভিস নির্বাচন করুন:",
         reply_markup=reply
     )
@@ -34,12 +34,12 @@ def start(update: Update, context: CallbackContext):
     return SERVICE
 
 
-def service(update: Update, context: CallbackContext):
+async def service(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["service"] = update.message.text
 
     reply = ReplyKeyboardMarkup(accounts, resize_keyboard=True)
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "🔐 Account Type নির্বাচন করুন:",
         reply_markup=reply
     )
@@ -47,30 +47,30 @@ def service(update: Update, context: CallbackContext):
     return ACCOUNT
 
 
-def account(update: Update, context: CallbackContext):
+async def account(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["account"] = update.message.text
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "📧 আপনার Gmail দিন:"
     )
 
     return GMAIL
 
 
-def gmail(update: Update, context: CallbackContext):
+async def gmail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["gmail"] = update.message.text
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "💳 Payment করুন:\n\n"
-        "Bkash: 01868635778 এজেন্ট শুধু মাত্র ক্যাশ আউট করবেন\n"
-        "Nagad: 01343496446 এজেন্ট শুধু মাত্র ক্যাশ আউট করবেন\n\n"
+        "Bkash: 01868635778\n"
+        "Nagad: 01343496446\n\n"
         "টাকা পাঠিয়ে Screenshot দিন।"
     )
 
     return SCREENSHOT
 
 
-def screenshot(update: Update, context: CallbackContext):
+async def screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1].file_id
 
     service = context.user_data["service"]
@@ -86,13 +86,13 @@ def screenshot(update: Update, context: CallbackContext):
         f"User ID: {update.message.from_user.id}"
     )
 
-    context.bot.send_photo(
+    await context.bot.send_photo(
         chat_id=ADMIN_ID,
         photo=photo,
         caption=caption
     )
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "✅ Screenshot Received\n\n"
         "⏳ ১০-১৫ মিনিটের মধ্যে অ্যাকাউন্ট পেয়ে যাবেন।"
     )
@@ -100,22 +100,20 @@ def screenshot(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
-updater = Updater(BOT_TOKEN, use_context=True)
-dp = updater.dispatcher
+app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 conv = ConversationHandler(
     entry_points=[CommandHandler("start", start)],
     states={
-        SERVICE: [MessageHandler(Filters.text & ~Filters.command, service)],
-        ACCOUNT: [MessageHandler(Filters.text & ~Filters.command, account)],
-        GMAIL: [MessageHandler(Filters.text & ~Filters.command, gmail)],
-        SCREENSHOT: [MessageHandler(Filters.photo, screenshot)],
+        SERVICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, service)],
+        ACCOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, account)],
+        GMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, gmail)],
+        SCREENSHOT: [MessageHandler(filters.PHOTO, screenshot)],
     },
     fallbacks=[]
 )
 
-dp.add_handler(conv)
+app.add_handler(conv)
 
 print("Bot Running...")
-updater.start_polling()
-updater.idle()
+app.run_polling()
