@@ -8,7 +8,7 @@ from telegram.ext import (
     ConversationHandler,
 )
 
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+BOT_TOKEN = "8812978702:AAEl9Hnug3vUiIIQTdxVDUcaDaEky04zzUM"
 ADMIN_ID = 6706601403
 
 SERVICE, ACCOUNT, GMAIL, SCREENSHOT = range(4)
